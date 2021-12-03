@@ -9,7 +9,6 @@ output reg	maze_oe,							// output enable (activeaza citirea din labirint la r�
 output reg	maze_we, 							// write enable (activeaza scrierea în labirint la rândul ?i coloana  date) - semnal sincron
 output reg	done);		 					// iesirea din labirint a fost gasita; semnalul ramane activ 
 
-//TODO implementare
 parameter maze_width = 6;
 parameter state_width = 4;
 
@@ -85,19 +84,19 @@ case(state)
         end
         else begin
             maze_we=1;
-		    if(prev_col==col+1 && prev_row==row)begin		//vin din dreapta ma uit in sus
+		    if(prev_col - 1 ==col && prev_row==row)begin		//vin din dreapta ma uit in sus
 			    i=0;
 			    end
-            if(prev_row==row-1 && prev_col==col)begin		//vin de sus ma uit la stanga
+            if(prev_row + 1==row && prev_col==col)begin		//vin de sus ma uit la stanga
 			    i=1;
 			    end
-    		if(prev_col==col-1 && prev_row==row)begin		//vin din stanga ma uit in jos
+    		if(prev_col + 1==col && prev_row==row)begin		//vin din stanga ma uit in jos
 	    		i=2;
 		    	end
-		    if(prev_row==row+1 && prev_col==col)begin		//vin de jos la uit la dreapta
+		    if(prev_row - 1==row && prev_col==col)begin		//vin de jos la uit la dreapta
 		    	i=3;
 			    end
-		    if(row==0 || row==63 || col==0 || col==63)
+		    if (col <= 0 || col >= 63 || row <= 0 || row >= 63)
 			    next=`done;
         end
 	end
