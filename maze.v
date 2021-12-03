@@ -12,7 +12,7 @@ output  reg done);		 						// ie?irea din labirint a fost gasita; semnalul raman
 	parameter maze_width = 6;
 	parameter width = 4;
 	reg[5:0] prev_row,prev_col;
-	integer i = 0, ii = 0;
+	reg[1:0] i = 0, ii = 0;
 	reg [width - 1:0] state, next;
 
 
@@ -136,11 +136,7 @@ output  reg done);		 						// ie?irea din labirint a fost gasita; semnalul raman
 		
 		`back : begin
 			row = prev_row;
-			col = prev_col;
-			
-			if(i>3)
-				i=0;
-			
+			col = prev_col;		
 			next = `look; 		//ma intorc si ma uit mai departe la celelalte directii
 		end
 		
@@ -175,7 +171,6 @@ output  reg done);		 						// ie?irea din labirint a fost gasita; semnalul raman
 		
 		`done : begin
 			done = 1;
-			next = `start;
 
 		end
 
