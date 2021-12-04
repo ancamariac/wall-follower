@@ -10,7 +10,7 @@ output reg	maze_we, 												// write enable (activeaza scrierea în labirint 
 output reg	done);		 											// iesirea din labirint a fost gasita; semnalul ramane activ 
 
 	parameter maze_width  = 6;
-	parameter state_width = 4;
+	parameter state_width = 3;
 	
 	parameter UP    =  0;
 	parameter LEFT  =  1;
@@ -29,7 +29,7 @@ output reg	done);		 											// iesirea din labirint a fost gasita; semnalul r
 	`define mission_accomplished	   3
 
 	// sequential part
-	always @(posedge clk)begin
+	always @(posedge clk) begin
 		// daca nu a fost gasita iesirea, se va trece in urmatoarea stare
 		if (done == 0) begin
 			state <= next_state;
@@ -133,6 +133,5 @@ output reg	done);		 											// iesirea din labirint a fost gasita; semnalul r
 
 	endcase
 	end
-
 
 endmodule
