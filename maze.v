@@ -9,67 +9,80 @@ output reg	maze_oe,													// output enable (activeaza citirea din labirint
 output reg	maze_we, 												// write enable (activeaza scrierea în labirint la rândul ?i coloana date) - semnal sincron
 output reg	done);		 											// ie?irea din labirint a fost gasita; semnalul ramane activ 
 
-	parameter maze_width = 6;
+	parameter maze_width  = 6;
 	parameter state_width = 4;
+	
+	parameter UP    =  0;
+	parameter LEFT  =  1;
+	parameter DOWN  =  2;
+	parameter RIGHT =  3;
 
-	reg [maze_width - 1:0] prev_row, prev_col;
-	reg [1:0] i = 0;
-	reg [state_width - 1:0] state, next;
+	reg [maze_width  - 1:0] last_row;
+	reg [maze_width  - 1:0] last_col;
+	reg [state_width - 1:0] state; 
+	reg [state_width - 1:0] next_state;
+	reg [1:0] direction = DOWN;
 
-	`define start	0
-	`define look	1	
-	`define move	2	
-	`define done	3
+	`define init	                  0
+	`define orientation	            1	
+	`define move	                  2	
+	`define mission_accomplished	   3
+	
 
+
+	// sequential part
 	always @(posedge clk)begin
-
+		// daca nu a fost gasita iesirea, se va trece in urmatoarea stare
 		if (done == 0) begin
-			state <= next;
+			state <= next_state;
 		end
-
 	end
 
+	// combinational part
 	always @(*) begin
 
-	next = `start;
+	next_state = `init;
 	maze_oe = 0;
 	maze_we = 0;
 	done = 0;
 
 	case(state)
 	
-		`start : begin	
+		`init : begin	
+			// se atribuie coordonatele initiale (punctul de start din matrice)
 			row = starting_row;
 			col = starting_col;
+			// se marcheaza punctul de start cu 2 si se trece la urmatoarea stare
 			maze_we = 1;
-			next = `look;	
+			next_state = `orientation;	
 		end
 		
-		`look : begin
-			prev_row = row;
-			prev_col = col;
+		`orientation : begin
+			// se salveaza temporar coordonatele pentru a putea retrograda traseul
+			last_row = row;
+			last_col = col;
 			maze_oe = 1;
-			next = `move;
+			next_state = `move;
 			
-			case(i)				
+			case (direction)				
 			
-				0 : begin         // next up
-					i = 1;
+				UP : begin         // next up
+					direction = LEFT;
 					row = row - 1;
 				end
 				
-				1 : begin         // next left
-					i = 2;
+				LEFT : begin         // next left
+					direction = DOWN;
 					col = col - 1;
 				end
 
-				2 : begin         // next down
-					i = 3;
+				DOWN : begin         // next down
+					direction = RIGHT;
 					row = row + 1;
 				end
 					
-				3 : begin         // next right
-					i = 0;
+				RIGHT : begin         // next right
+					direction = UP;
 					col = col + 1;
 				end
 				
@@ -78,31 +91,36 @@ output reg	done);		 											// ie?irea din labirint a fost gasita; semnalul r
 		end
 		
 		`move : begin		
-			next = `look;
+			next_state = `orientation;
 			  
 			if (maze_in == 1) begin		//ma intorc daca dau in perete
-				row = prev_row;
-				col = prev_col;
+				
+				row = last_row;
+				col = last_col;
+				
 		   end else begin		
-				maze_we=1;
-			   if (prev_col - 1 ==col && prev_row == row) begin		//vin din dreapta ma uit in sus
-					i = 0;
-				end
-				if (prev_row + 1 == row && prev_col == col)begin		//vin de sus ma uit la stanga
-					i = 1;
-				end
-			   if (prev_col + 1 == col && prev_row == row)begin		//vin din stanga ma uit in jos
-				   i = 2;
-				end
-			   if (prev_row - 1 == row && prev_col == col)begin		//vin de jos la uit la dreapta
-				   i = 3;
-				end
-			   if (col <= 0 || col >= 63 || row <= 0 || row >= 63)
-				   next = `done;
-		      end
-			end
 			
-		`done : begin
+				maze_we = 1;
+				
+			   if (last_col - 1 ==col && last_row == row) begin		//vin din dreapta ma uit in sus
+					direction = 0;
+				end
+				if (last_row + 1 == row && last_col == col) begin		//vin de sus ma uit la stanga
+					direction = 1;
+				end
+			   if (last_col + 1 == col && last_row == row) begin		//vin din stanga ma uit in jos
+				   direction = 2;
+				end
+			   if (last_row - 1 == row && last_col == col) begin		//vin de jos la uit la dreapta
+				   direction = 3;
+				end
+			   if (col <= 0 || col >= 63 || row <= 0 || row >= 63) begin
+				   next_state = `mission_accomplished;
+				end
+			end
+		end
+			
+		`mission_accomplished : begin
 			done = 1;
 		end
 
